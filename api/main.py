@@ -30,7 +30,8 @@ def create_app() -> FastAPI:
     app = FastAPI(title="Agno AI Backend")
     setup_middleware(app)
     setup_routes(app)
-    static_dir = os.path.join(os.path.dirname(__file__), 'static')
+    # Sử dụng static folder là build/dist của frontend
+    static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist'))
     app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
     return app
 
@@ -40,7 +41,8 @@ app = create_app()
 async def custom_404_handler(request: Request, exc):
     if request.url.path.startswith("/api/"):
         return JSONResponse(status_code=404, content={"detail": "Not Found"})
-    index_path = os.path.join(os.path.dirname(__file__), 'static', 'index.html')
+    # Luôn trả về index.html cho mọi route không phải /api/ (SPA routing)
+    index_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist', 'index.html'))
     if os.path.exists(index_path):
         return FileResponse(index_path)
     return JSONResponse(status_code=404, content={"detail": "Not Found"})
